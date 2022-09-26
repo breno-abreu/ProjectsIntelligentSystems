@@ -1,3 +1,4 @@
 # Projects Intelligent Systems
-###Author: Breno Moura de Abreu
-###Description:Repository for the projects of the Intelligent Systems course. Written in Python.
+Repository for the projects of the Intelligent Systems course. Written in Python.
+
+**Author**: Breno Moura de Abreu
