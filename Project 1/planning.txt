@@ -1,0 +1,29 @@
+Main:
+1. Read base files: ambiente e sinais vitais
+    a. Read files
+    b. Return dictionaries with the information
+2. Explore the map
+    a. A* algorithm
+    b. Online Search
+    c. Creates a new environment only with the discovered parts
+3. Rescue people
+    b. Genetic Algorithm using the dicovered environment
+
+
+Auxiliary and basic functions:
+1. Visualize map
+2. A*
+
+//========================================================================================
+Class <File Reader>
+1. get_environment_data: Read file Ambiente, returns a dictionary
+2. get_vital_signs_data: Read file Sinais Vitais, returns a dictionary
+
+Class <Environment>
+1. constructor: gets the environment and vital sings dictionary.
+2. print_environment: prints the environment
+3. print_vital_signs: prints the vital signs, along with the victms position
+4. run_a_star: runs the a star algorithm between two positions
+5. get_min_distances: returns a table containing the minimum distances between the victms and also the base
+
+class <Agent>
