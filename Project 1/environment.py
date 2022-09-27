@@ -5,6 +5,9 @@ class Environment:
         self.victim_data = self.get_victim_data()
         self.env_map = self.build_map()
     
+    def get_map(self):
+        return self.env_map
+
     def print_victim_data(self):
         for key in self.victim_data:
             data = ""
