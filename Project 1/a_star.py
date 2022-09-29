@@ -8,6 +8,7 @@ class ANode:
             self.h_value = 0
             self.g_value = math.inf
             self.f_value = 0
+            self.cost = 0
             self.parent = None
             self.neighbors = []
             self.is_base = is_base
@@ -120,12 +121,14 @@ class AStar:
     def get_path(self, node):
         path = []
         current_node = node
+        cost = 0
 
         while current_node != None:
+            cost += current_node.cost
             path.append(current_node)
             current_node = current_node.parent
-            
-        return path
+
+        return {'path' : path, 'cost' : cost}
     
     def get_path_only_positions(self, path):
         positions = []
@@ -166,45 +169,9 @@ class AStar:
                     if score < neighbor['node'].g_value:
                         neighbor['node'].parent = best_node
                         neighbor['node'].g_value = score
+                        neighbor['node'].cost = neighbor['cost']
                         neighbor['node'].f_value = score + neighbor['node'].f_value
                         if not self.is_node_in_border(neighbor['node'], border):
                             border.append(neighbor['node'])
         
         return None
-
-            
-
-
-'''
-Main (start, goal):
-get list of all nodes (dict by pos x and y)
-Calculate heuristics for each node, initializes g and f with 0
-
-initializes first node with g = 0 and f = h
-
-create list of border
-
-add start node in border
-
-while open is not empty
-    gets node with lowest f
-    if goal return path
-    remove node from open
-
-    get all neighbors add to lsit of neighbors in the class
-
-    for each neighbor
-        get neighbor cost
-        if cost < neighbor(g)
-            update values
-            if neighbor not in open
-                add to open
-
-return None
-
-----------
-
-reconstruct path using the nodes parents
-
-
-'''

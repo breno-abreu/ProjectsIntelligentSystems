@@ -9,10 +9,11 @@ def main():
     environment.print_map()
     
     a_star = AStar(environment.get_map())
-    path = a_star.run((2, 8), (18, 14))
-    positions = a_star.get_path_only_positions(path)
+    path = a_star.run((0, 0), (4, 3))
+    positions = a_star.get_path_only_positions(path['path'])
 
     environment.print_map_with_path(positions)
+    print('cost: ' + str(path['cost']))
 
     print(positions)
 
