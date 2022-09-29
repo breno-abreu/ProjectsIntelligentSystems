@@ -17,8 +17,6 @@ class Environment:
     
     def build_map(self):
         env_map = []
-        x_pos = 0
-        y_pos = 0
         for y in range(self.enviroment_data["YMax"]):
             row = []
             for _ in range(self.enviroment_data["XMax"]):
@@ -107,3 +105,28 @@ class Environment:
             i += 1
         
         return dictionary
+    
+    def get_state(self, position):
+        if (position[0] < 0 or position[1] < 0 or
+            position[0] > self.enviroment_data["XMax"] - 1 or 
+            position[1] > self.enviroment_data["YMax"] - 1): 
+            return 'blocked'
+
+        else:
+            for y in range(self.env_map):
+                for x in range(self.env_map[y]):
+                    if x == position[0] and y == position[1]:
+                        if self.env_map[y][x] == '.':
+                            return 'empty'
+                        elif self.env_map[y][x] == 'V':
+                            return 'victim'
+                        elif self.env_map[y][x] == 'V':
+                            return 'base'
+                        elif self.env_map[y][x] == '#':
+                            return 'blocked'
+    
+    def get_base_position(self):
+        for y in range(self.env_map):
+            for x in range(self.env_map[y]):
+                if self.env_map[y][x] == 'B':
+                    return (x, y)
