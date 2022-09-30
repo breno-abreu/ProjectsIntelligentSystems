@@ -7,6 +7,12 @@ class Environment:
     
     def get_map(self):
         return self.env_map
+    
+    def get_te(self):
+        return self.enviroment_data["Te"]
+    
+    def get_ts(self):
+        return self.enviroment_data["Ts"]
 
     def print_victim_data(self):
         for key in self.victim_data:
@@ -99,9 +105,8 @@ class Environment:
         i = 0
         dictionary = {}
         for key in self.vital_signs_data:
-            dictionary[key] = self.vital_signs_data[key]
-            dictionary[key].append(self.enviroment_data["Vitimas"][i][0])
-            dictionary[key].append(self.enviroment_data["Vitimas"][i][1])
+            dictionary[key] = {'id' : self.vital_signs_data[key]}
+            dictionary[key] = {'position' : [(self.enviroment_data["Vitimas"][i][0]), self.enviroment_data["Vitimas"][i][1]]}
             i += 1
         
         return dictionary
@@ -110,23 +115,16 @@ class Environment:
         if (position[0] < 0 or position[1] < 0 or
             position[0] > self.enviroment_data["XMax"] - 1 or 
             position[1] > self.enviroment_data["YMax"] - 1): 
-            return 'blocked'
+            return '#'
 
         else:
-            for y in range(self.env_map):
-                for x in range(self.env_map[y]):
+            for y in range(len(self.env_map)):
+                for x in range(len(self.env_map[y])):
                     if x == position[0] and y == position[1]:
-                        if self.env_map[y][x] == '.':
-                            return 'empty'
-                        elif self.env_map[y][x] == 'V':
-                            return 'victim'
-                        elif self.env_map[y][x] == 'V':
-                            return 'base'
-                        elif self.env_map[y][x] == '#':
-                            return 'blocked'
+                        return self.env_map[y][x]
     
     def get_base_position(self):
-        for y in range(self.env_map):
-            for x in range(self.env_map[y]):
+        for y in range(len(self.env_map)):
+            for x in range(len(self.env_map[y])):
                 if self.env_map[y][x] == 'B':
                     return (x, y)
