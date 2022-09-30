@@ -3,9 +3,9 @@ from turtle import st
 
 class State:
     def __init__(self, position, tile_type):
-        self.position = position
+        self.position = [position[0], position[1]]
         self.name = str(position[0]) + ',' + str(position[1])
-        self.actions = ['up', 'right', 'down', 'left']
+        self.actions = ['right', 'down', 'left', 'up']
         self.type = tile_type
 
 class Persistent:
@@ -114,6 +114,55 @@ class AgentExplorer:
         else:
             self.current_state = State(state_position, tile_type)
     
+    def print_final_map(self):
+        for element in self.persistent.get_final_map():
+            print(str(element.position) + '   ' + element.type)
+
+    def build_explored_map(self):
+        final_map = self.persistent.get_final_map()
+
+        for element in final_map:
+            element.position[0] += 1
+            element.position[1] += 1
+        
+        x_max = -1
+
+        for element in final_map:
+            if element.position[0] > x_max:
+                x_max = element.position[0]
+
+        y_max = -1
+
+        for element in final_map:
+            if element.position[1] > y_max:
+                y_max = element.position[1]
+
+        map_dict = {"Te" : 0, "Ts" : 0, "XMax" : x_max, "YMax" : y_max, "Base" : [], "Vitimas" : [], "Parede" : []}
+        
+        map_aux = []
+
+        for y in range(y_max):
+            map_aux.append([])
+            for x in range(x_max):
+                map_aux[y].append('#')
+
+        for y in range(y_max):
+            for x in range(x_max):
+                for element in final_map:
+                    if element.position[0] == x and element.position[1] == y:
+                        map_aux[y][x] = element.type
+        
+        for y in range(len(map_aux)):
+            for x in range(len(map_aux[y])):
+                if map_aux[y][x] == 'B':
+                    map_dict['Base'] = [x, y]
+                elif map_aux[y][x] == 'V':
+                    map_dict['Vitimas'].append([x, y])
+                elif map_aux[y][x] == '#':
+                    map_dict['Parede'].append([x, y])
+
+        return map_dict
+    
     # TODO
     def get_distance_from_base(self):
         # use current_state and start_state
@@ -123,7 +172,7 @@ class AgentExplorer:
         action = ''
         state_name = self.persistent.get_name_from_position(state_position)
 
-        if state_position == self.goal:
+        if state_position[0] == self.goal[0] and state_position[1] == self.goal[1]:
             return 'end'
         
         if not self.persistent.is_in_untried(state_name):
@@ -162,6 +211,9 @@ class AgentExplorer:
             state_position = self.current_state.position
             tile_type = self.current_state.type
             action = self.online_dfs_agent(state_position, tile_type)
+            count += 1
+            if count == 1000:
+                action = 'end'
             
             if action == 'up':
                 new_tile_type = self.environment.get_state((state_position[0], state_position[1] - 1))
@@ -178,11 +230,6 @@ class AgentExplorer:
             elif action == 'left':
                 new_tile_type = self.environment.get_state((state_position[0] - 1, state_position[1]))
                 self.update_current_state((state_position[0] - 1, state_position[1]), new_tile_type)
-
-
-        final_map = self.persistent.get_final_map()
-        for tile in final_map:
-            print(str(tile.position) + '   ' + str(tile.type))
 
 '''
 ========================

@@ -102,14 +102,16 @@ class Environment:
                 
     
     def get_victim_data(self):
-        i = 0
-        dictionary = {}
-        for key in self.vital_signs_data:
-            dictionary[key] = {'id' : self.vital_signs_data[key]}
-            dictionary[key] = {'position' : [(self.enviroment_data["Vitimas"][i][0]), self.enviroment_data["Vitimas"][i][1]]}
-            i += 1
-        
-        return dictionary
+        if self.vital_signs_data != None:
+            i = 0
+            dictionary = {}
+            for key in self.vital_signs_data:
+                dictionary[key] = {'id' : self.vital_signs_data[key]}
+                dictionary[key] = {'position' : [(self.enviroment_data["Vitimas"][i][0]), self.enviroment_data["Vitimas"][i][1]]}
+                i += 1
+            
+            return dictionary
+        return None
     
     def get_state(self, position):
         if (position[0] < 0 or position[1] < 0 or
