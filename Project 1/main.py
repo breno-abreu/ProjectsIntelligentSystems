@@ -8,7 +8,7 @@ def main():
     environment = Environment(reader.get_environment_data(), reader.get_vital_signs_data())
     environment.print_map()
     
-    explorer = AgentExplorer(environment.get_map(), environment.get_base_position(), environment.get_te(), (10, 10))
+    explorer = AgentExplorer(environment, (10, 9))
     explorer.explore()
     
 

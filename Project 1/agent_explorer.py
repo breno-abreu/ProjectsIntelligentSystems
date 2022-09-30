@@ -16,6 +16,7 @@ class Persistent:
         self.untried = {}
         self.unbacktracked = {}
         self.explored_states = []
+        self.seen_results = []
     
     def get_name_from_position(self, position):
         return str(position[0]) + "," + str(position[1])
@@ -45,6 +46,9 @@ class Persistent:
     
     def get_untried(self, state_name):
         return self.untried[state_name].pop(0)
+
+    def get_final_map(self):
+        return self.explored_states
     
     def remove_action(self, state_name, action):
         self.untried[state_name].remove(action)
@@ -55,9 +59,10 @@ class Persistent:
         else:
             return True 
 
-    def add_unbacktracked(self, current_state_name, previous_state):
+    def add_unbacktracked(self, current_state_name, previous_state, previous_action):
         previous_state_name = self.get_name_from_position(previous_state)
-        if current_state_name != previous_state_name:
+        result_name = previous_state_name + ',' + previous_action + ',' + current_state_name
+        if current_state_name != previous_state_name and not result_name in self.seen_results:
             if not current_state_name in self.unbacktracked:
                 self.unbacktracked[current_state_name] = []
                 self.unbacktracked[current_state_name].append(previous_state)
@@ -78,27 +83,36 @@ class Persistent:
     
     def get_unbacktracked_action(self, state_name):
         unbactracked_state = self.get_unbacktracked_state(state_name)
+        unbacktracked_state_name = self.get_name_from_position(unbactracked_state)
         actions = ['up', 'right', 'down', 'left']
         for action in actions:
             result_name = str(state_name) + "," + str(action)
             if result_name in self.results:
                 if self.results[result_name] == unbactracked_state:
+                    result_name = result_name + ',' + unbacktracked_state_name
+                    self.seen_results.append(result_name)
                     return action
 
 
 class AgentExplorer:
-    def __init__(self, base_map, base_position, action_points, goal):
-        self.base_map = base_map
-        self.start_state = State(base_position, 'B')
+    def __init__(self, environment, goal):
+        self.environment = environment
+        self.base_map = environment.get_map()
+        self.start_state = State(environment.get_base_position(), 'B')
         self.current_state = self.start_state
-        self.action_points = action_points
+        self.action_points = environment.get_te()
         self.distance_from_base = 0
         self.goal = goal
         self.persistent = Persistent()
-        self.persistent.add_final_state(base_position, 'B')
     
-    def update_state(self, current_state):
-        self.current_state = current_state
+    def set_current_state(self, state_position, tile_type):
+        self.current_state = State(state_position, tile_type)
+
+    def update_current_state(self, state_position, tile_type):
+        if tile_type == '#':
+            self.persistent.add_final_state(state_position, '#')
+        else:
+            self.current_state = State(state_position, tile_type)
     
     # TODO
     def get_distance_from_base(self):
@@ -120,13 +134,16 @@ class AgentExplorer:
             self.persistent.add_result(self.persistent.previous_state, 
                                        self.persistent.previous_action,
                                        state_position)
-            self.persistent.add_unbacktracked(state_name, self.persistent.previous_state)
+            self.persistent.add_unbacktracked(state_name, 
+                                              self.persistent.previous_state, 
+                                              self.persistent.previous_action)
         
         if self.persistent.is_untried_empty(state_name):
             if self.persistent.is_unbacktracked_empty(state_name):
                 return 'end'
             else:
                 action = self.persistent.get_unbacktracked_action(state_name)
+
         else:
             action = self.persistent.get_next_action(state_name)
         
@@ -137,17 +154,38 @@ class AgentExplorer:
         
 
     def explore(self):
-        tile = '.'
+        action = ''
+
+        count = 0
         
-        
-        
+        while action != 'end':
+            state_position = self.current_state.position
+            tile_type = self.current_state.type
+            action = self.online_dfs_agent(state_position, tile_type)
+            
+            if action == 'up':
+                new_tile_type = self.environment.get_state((state_position[0], state_position[1] - 1))
+                self.update_current_state((state_position[0], state_position[1] - 1), new_tile_type)
+
+            elif action == 'right':
+                new_tile_type = self.environment.get_state((state_position[0] + 1, state_position[1]))
+                self.update_current_state((state_position[0] + 1, state_position[1]), new_tile_type)
+
+            elif action == 'down':
+                new_tile_type = self.environment.get_state((state_position[0], state_position[1] + 1))
+                self.update_current_state((state_position[0], state_position[1] + 1), new_tile_type)
+
+            elif action == 'left':
+                new_tile_type = self.environment.get_state((state_position[0] - 1, state_position[1]))
+                self.update_current_state((state_position[0] - 1, state_position[1]), new_tile_type)
+
+
+        final_map = self.persistent.get_final_map()
+        for tile in final_map:
+            print(str(tile.position) + '   ' + str(tile.type))
 
 '''
 ========================
-persistent.result.add_state(current_state)
-
-all_states = new environment
-all_states.append(current_state)
 
 while not goal:
     get_distance_to_base
