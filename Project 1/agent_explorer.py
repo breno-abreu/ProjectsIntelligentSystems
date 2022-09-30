@@ -1,11 +1,12 @@
-from turtle import st
+from a_star import AStar
+from environment import Environment
 
 
 class State:
     def __init__(self, position, tile_type):
         self.position = [position[0], position[1]]
         self.name = str(position[0]) + ',' + str(position[1])
-        self.actions = ['right', 'down', 'left', 'up']
+        self.actions = ['right', 'up', 'left', 'down']
         self.type = tile_type
 
 class Persistent:
@@ -104,6 +105,9 @@ class AgentExplorer:
         self.distance_from_base = 0
         self.goal = goal
         self.persistent = Persistent()
+        self.map_temp = None
+        self.victims = {}
+        #self.persistent.add_final_state(environment.get_base_position(), 'B')
     
     def set_current_state(self, state_position, tile_type):
         self.current_state = State(state_position, tile_type)
@@ -113,13 +117,19 @@ class AgentExplorer:
             self.persistent.add_final_state(state_position, '#')
         else:
             self.current_state = State(state_position, tile_type)
+        
+        self.action_points -= 1
     
     def print_final_map(self):
         for element in self.persistent.get_final_map():
             print(str(element.position) + '   ' + element.type)
 
     def build_explored_map(self):
-        final_map = self.persistent.get_final_map()
+        final_map_org = self.persistent.get_final_map()
+        final_map = []
+
+        for element in final_map_org:
+            final_map.append(State(element.position, element.type))
 
         for element in final_map:
             element.position[0] += 1
@@ -137,17 +147,17 @@ class AgentExplorer:
             if element.position[1] > y_max:
                 y_max = element.position[1]
 
-        map_dict = {"Te" : 0, "Ts" : 0, "XMax" : x_max, "YMax" : y_max, "Base" : [], "Vitimas" : [], "Parede" : []}
+        map_dict = {"Te" : 0, "Ts" : 0, "XMax" : x_max + 1, "YMax" : y_max + 1, "Base" : [], "Vitimas" : [], "Parede" : []}
         
         map_aux = []
 
-        for y in range(y_max):
+        for y in range(y_max + 1):
             map_aux.append([])
-            for x in range(x_max):
+            for x in range(x_max + 1):
                 map_aux[y].append('#')
-
-        for y in range(y_max):
-            for x in range(x_max):
+        
+        for y in range(len(map_aux)):
+            for x in range(len(map_aux[y])):
                 for element in final_map:
                     if element.position[0] == x and element.position[1] == y:
                         map_aux[y][x] = element.type
@@ -160,20 +170,17 @@ class AgentExplorer:
                     map_dict['Vitimas'].append([x, y])
                 elif map_aux[y][x] == '#':
                     map_dict['Parede'].append([x, y])
-
+        
+        self.map_temp = map_aux
         return map_dict
-    
-    # TODO
-    def get_distance_from_base(self):
-        # use current_state and start_state
-        return 0
     
     def online_dfs_agent(self, state_position, tile_type):
         action = ''
         state_name = self.persistent.get_name_from_position(state_position)
 
-        if state_position[0] == self.goal[0] and state_position[1] == self.goal[1]:
-            return 'end'
+        '''if state_position[0] == self.goal[0] and state_position[1] == self.goal[1]:
+            self.persistent.add_final_state(state_position, tile_type)
+            return 'end' '''
         
         if not self.persistent.is_in_untried(state_name):
             self.persistent.add_untried(state_position, tile_type)
@@ -200,21 +207,64 @@ class AgentExplorer:
         self.persistent.previous_action = action
         
         return action
-        
+
+    def get_path_to_base(self, base_position, agent_position):
+        bx = base_position[0] + 1
+        by = base_position[1] + 1
+
+        ax = agent_position[0] + 1
+        ay = agent_position[1] + 1
+
+        environment = Environment(self.build_explored_map(), None)
+        a_star = AStar(environment.env_map)
+        path = a_star.run((bx, by), (ax, ay))
+        return path
+    
+    def go_back_to_base(self, cost):
+        print(self.current_state.position)
+        print(cost)
+        self.action_points -= cost
+        if self.action_points >= 0:
+            self.current_state = self.start_state
+            print('Points left: ' + str(self.action_points))
+            print('Robot went back to the base!')
+        else:
+            print('Robot died in its way to the base :(')
+
+    def scan_victim(self, position):
+        vx = position[0] + 1
+        vy = position[1] + 1
+        state_name = self.persistent.get_name_from_position((vx, vy))
+        original_state_name = self.persistent.get_name_from_position((vx - 1, vy - 1))
+        if not state_name in self.victims:
+            victim_id = self.get_victim_id(original_state_name)
+            victim_data = self.environment.victim_data[victim_id]
+            self.victims[state_name] = {'position' : (vx, vy), 'class' : victim_data['class']}
+            self.action_points -= 2
+    
+    def get_victim_id(self, position_name):
+        for victim_id in self.environment.victim_data:
+            if self.environment.victim_data[victim_id]['position_name'] == position_name:
+                return victim_id
 
     def explore(self):
         action = ''
-
-        count = 0
         
         while action != 'end':
             state_position = self.current_state.position
             tile_type = self.current_state.type
             action = self.online_dfs_agent(state_position, tile_type)
-            count += 1
-            if count == 1000:
+
+            path_to_base = self.get_path_to_base(self.start_state.position, state_position)
+            if self.action_points <= path_to_base['cost'] + 2 or action == 'end':
                 action = 'end'
+                self.go_back_to_base(path_to_base['cost'])
+
             
+            if self.environment.get_state(state_position) == 'V':
+                self.scan_victim(state_position)
+
+
             if action == 'up':
                 new_tile_type = self.environment.get_state((state_position[0], state_position[1] - 1))
                 self.update_current_state((state_position[0], state_position[1] - 1), new_tile_type)
@@ -230,32 +280,3 @@ class AgentExplorer:
             elif action == 'left':
                 new_tile_type = self.environment.get_state((state_position[0] - 1, state_position[1]))
                 self.update_current_state((state_position[0] - 1, state_position[1]), new_tile_type)
-
-'''
-========================
-
-while not goal:
-    get_distance_to_base
-    if distance = agent_actions_left:
-        go_back_to_base
-
-    if current_state is victim:
-        agent.scan
-
-    action = online_dfs(current_state)
-
-    ' for each direction
-    if action = up:
-        base_map.whats_up(state) (write this function in the enviroment class)
-        if not possible (wall):
-            agent.stay
-            all_states.append(wall)
-        else:
-            agent.go_up
-            change current_state
-            all_states.append(new_state)
-
-the final map should be translated to the normal coordinate systems (>0, >0)
-
-
-'''

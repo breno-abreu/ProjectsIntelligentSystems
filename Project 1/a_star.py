@@ -132,6 +132,7 @@ class AStar:
     
     def get_path_only_positions(self, path):
         positions = []
+        path = path['path']
 
         for node in path:
             positions.append([node.x_pos, node.y_pos])

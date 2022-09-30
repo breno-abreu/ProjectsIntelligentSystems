@@ -72,6 +72,7 @@ class Environment:
                     print('\033[0m' + self.env_map[i][j] + '\033[0m', end="    ")
             print('\n')
     
+
     def print_map_with_path(self, path):
         print('\n\t', end="  ")
         for i in range(len(self.env_map[0])):
@@ -104,10 +105,10 @@ class Environment:
     def get_victim_data(self):
         if self.vital_signs_data != None:
             i = 0
-            dictionary = {}
+            dictionary = self.vital_signs_data
             for key in self.vital_signs_data:
-                dictionary[key] = {'id' : self.vital_signs_data[key]}
-                dictionary[key] = {'position' : [(self.enviroment_data["Vitimas"][i][0]), self.enviroment_data["Vitimas"][i][1]]}
+                self.vital_signs_data[key]['class'] = self.vital_signs_data[key]['data'][6]
+                self.vital_signs_data[key]['position_name'] = str(self.enviroment_data["Vitimas"][i][0]) + ',' + str(self.enviroment_data["Vitimas"][i][1])
                 i += 1
             
             return dictionary

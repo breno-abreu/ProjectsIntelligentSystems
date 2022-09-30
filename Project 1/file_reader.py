@@ -54,6 +54,6 @@ class FileReader:
             else:
                 data.append(4)
             
-            dictionary[line_split_comma[0]] = data
+            dictionary[line_split_comma[0]] = {'data' : data}
             
         return dictionary

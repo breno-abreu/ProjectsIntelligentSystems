@@ -1,0 +1,32 @@
+Date : 2022-09-30 19:13:46
+Directory : c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems
+Total : 6 files,  523 codes, 9 comments, 147 blanks, all 679 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |          5 |        520 |          9 |        146 |        675 |
+| Markdown |          1 |          3 |          0 |          1 |          4 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                  | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                     |          6 |        523 |          9 |        147 |        679 |
+| Project 1                                                                                                             |          5 |        520 |          9 |        146 |        675 |
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                                              | language | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\Project 1\a_star.py         | Python   |        128 |          8 |         42 |        178 |
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\Project 1\agent_explorer.py | Python   |        220 |          1 |         61 |        282 |
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\Project 1\environment.py    | Python   |        105 |          0 |         29 |        134 |
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\Project 1\file_reader.py    | Python   |         51 |          0 |          9 |         60 |
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\Project 1\main.py           | Python   |         16 |          0 |          5 |         21 |
+| c:\Users\breno\Storage\BSI Temp\Sistemas Inteligentes\Projects\ProjectsIntelligentSystems\README.md                   | Markdown |          3 |          0 |          1 |          4 |
+| Total                                                                                                                 |          |        523 |          9 |        147 |        679 |
++-----------------------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
