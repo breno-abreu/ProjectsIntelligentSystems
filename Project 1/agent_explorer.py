@@ -106,9 +106,15 @@ class AgentExplorer:
         self.goal = goal
         self.persistent = Persistent()
         self.map_temp = None
-        self.victims = {}
+        self.victims = []
         #self.persistent.add_final_state(environment.get_base_position(), 'B')
     
+    def get_env_map(self):
+        return self.environment.env_map
+
+    def get_victims(self):
+        return self.victims
+
     def set_current_state(self, state_position, tile_type):
         self.current_state = State(state_position, tile_type)
 
@@ -239,7 +245,7 @@ class AgentExplorer:
         if not state_name in self.victims:
             victim_id = self.get_victim_id(original_state_name)
             victim_data = self.environment.victim_data[victim_id]
-            self.victims[state_name] = {'position' : (vx, vy), 'class' : victim_data['class']}
+            self.victims.append({'name' : state_name, 'position' : (vx, vy), 'class' : victim_data['class']})
             self.action_points -= 2
     
     def get_victim_id(self, position_name):
