@@ -1,4 +1,3 @@
-from audioop import cross
 import random
 from a_star import AStar
 from random import randint, randrange
@@ -162,20 +161,57 @@ class GeneticAlgorithm:
                     self.cost_table[victim_a['name']][victim_b['name']] = path['cost']
 
 
+class AgentRescuer:
+    def __init__(self, environment, victims, population_size, n_generations, ts):
+        self.environment = environment
+        self.victims = victims
+        self.population_size = population_size
+        self.n_generations = n_generations
+        self.ts = ts
+        self.genetic_algorithm = None
+    
+    def run(self):
+        found = False
+        individual = None
+        while not found:
+            
+            if len(self.victims) <= 2:
+                found = True
+                individual = None
+                break
 
-def main():
-    individuals = []
-    individuals.append({'name':'a', 'cost':10})
-    individuals.append({'name':'b', 'cost':5})
-    individuals.append({'name':'c', 'cost':15})
-    individuals.append({'name':'d', 'cost':100})
-    individuals.append({'name':'e', 'cost':1})
+            self.genetic_algorithm = GeneticAlgorithm(self.environment, self.victims, self.population_size, self.n_generations)
+            individual = self.genetic_algorithm.run()
 
-    print(individuals)
+            if individual['fitness'] <= self.ts:
+                found = True
+            else:
+                self.remove_last_victim()
 
-    individuals = sorted(individuals, key=lambda d: d['cost']) 
-    print(individuals)
+        return individual
+            
 
+    def remove_last_victim(self):
+        lower_class = 10
+        for victim in self.victims:
+            if victim['class'] < lower_class:
+                lower_class = victim['class']
+        
+        lower_class_list = []
+        for victim in self.victims:
+            if victim['class'] == lower_class:
+                lower_class_list.append(victim)
+        
+        victim_name = ''
+        max_cost = 0
 
-if __name__ == "__main__":
-    main()
+        for victim in lower_class_list:
+            cost = self.genetic_algorithm.get_cost(victim['name'], self.genetic_algorithm.base_name)
+            if cost > max_cost:
+                victim_name = victim['name']
+                max_cost = cost
+        
+        for i in range(len(self.victims)):
+            if self.victims[i]['name'] == victim_name:
+                del self.victims[i]
+                break

@@ -100,7 +100,7 @@ class Environment:
                         print('\033[0m' + self.env_map[i][j] + '\033[0m', end="    ")
 
             print('\n')
-                
+   
     
     def get_victim_data(self):
         if self.vital_signs_data != None:
