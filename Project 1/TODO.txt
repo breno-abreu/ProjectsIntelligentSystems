@@ -1,1 +1,0 @@
-- Testar com ordem de visita diferente para o explorador
