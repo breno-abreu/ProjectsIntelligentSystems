@@ -117,22 +117,19 @@ class AgentExplorer:
         return len(self.victims)
     
     def get_weighted_victim_cost(self):
-        v1 = 0
-        v2 = 0
-        v3 = 0
-        v4 = 0
+        v = [0, 0, 0, 0]
 
         for victim in self.victims:
             if victim['class'] == 1:
-                v1 += 1
+                v[0] += 1
             elif victim['class'] == 2:
-                v2 += 1
+                v[1] += 1
             elif victim['class'] == 3:
-                v3 += 1
+                v[2] += 1
             elif victim['class'] == 4:
-                v4 += 1
+                v[3] += 1
 
-        return 4 * v1 + 3 * v2 + 2 * v2 + v4
+        return 4 * v[0] + 3 * v[1] + 2 * v[2] + v[3]
 
     def get_env_map(self):
         return self.environment.env_map

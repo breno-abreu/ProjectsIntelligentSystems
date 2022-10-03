@@ -9,21 +9,19 @@ class Environment:
         return len(self.victim_data)
     
     def get_weighted_victim_cost(self):
-        v1 = 0
-        v2 = 0
-        v3 = 0
-        v4 = 0
+        v = [0, 0, 0, 0]
+
         for key in self.victim_data:
             if self.victim_data[key]['class'] == 1:
-                v1 += 1
+                v[0] += 1
             elif self.victim_data[key]['class'] == 2:
-                v2 += 1
+                v[1] += 1
             elif self.victim_data[key]['class'] == 3:
-                v3 += 1
+                v[2] += 1
             elif self.victim_data[key]['class'] == 4:
-                v4 += 1
+                v[3] += 1
 
-        return 4 * v1 + 3 * v2 + 2 * v2 + v4
+        return 4 * v[0] + 3 * v[1] + 2 * v[2] + v[3]
     
     def get_map(self):
         return self.env_map
