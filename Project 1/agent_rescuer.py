@@ -1,31 +1,32 @@
 import random
+import copy
 from a_star import AStar
-from random import randint, randrange
+from random import randint
 
 class GeneticAlgorithm:
     def __init__(self, environment, victims, population_size, n_generations):
         self.environment = environment
         self.base_position = environment.get_base_position()
-        self.base_name = self.base_position[0] + ',' + self.base_position[1]
+        self.base_name = str(self.base_position[0]) + ',' + str(self.base_position[1])
         self.env_map = environment.get_map()
         self.victims = victims
         self.individuals = []
-        self.a_star = AStar(self.env_map)
-        self.cost_table = {}
+        self.cost_table = None
         self.population_size = population_size
         self.n_generations = n_generations
+        self.crossover_n_individuals = 6
     
     def run(self):
+        self.build_cost_table()
         self.create_population()
-
         self.set_fitness()
         self.sort_population()
         
-        for _ in range(self.n_generations):
-
+        for i in range(self.n_generations):
+            #print('Generation: ' + str(i))
             self.set_roulette_values()
-            cross_indexes = self.select_n_individuals(4)
-
+            cross_indexes = self.select_n_individuals(self.crossover_n_individuals)
+            
             n_parents = len(self.individuals)
             for i in range(0, len(cross_indexes), 2):
                 self.do_crossover(80, cross_indexes[i], cross_indexes[i + 1])
@@ -52,26 +53,54 @@ class GeneticAlgorithm:
         for i in range(1, len(self.individuals[index]['victims']) - 1):
             value = randint(0, 100)
             if value <= p_mut:
-                value = randint(1, len(self.individuals[index]['victims']) - 1)
+                value = randint(1, len(self.individuals[index]['victims']) - 2)
                 temp = self.individuals[index]['victims'][i]
                 self.individuals[index]['victims'][i] = self.individuals[index]['victims'][value]
                 self.individuals[index]['victims'][value] = temp
-    
 
     def do_crossover(self, p_cross, index_a, index_b):
+        
         value = randint(0, 100)
-        descendent_a = self.individuals[index_a].copy()
-        descendent_b = self.individuals[index_b].copy()
+        descendent_a = copy.deepcopy(self.individuals[index_a])
+        descendent_b = copy.deepcopy(self.individuals[index_b])
         if value <= p_cross:
-            value = randint(2, descendent_a['victims'] - 2)
-            for i in range(1, value):
+            value = randint(2, len(descendent_a['victims']) - 3)
+            for i in range(value):
                 temp = descendent_a['victims'][i]
                 descendent_a['victims'][i] = descendent_b['victims'][i]
                 descendent_b['victims'][i] = temp
 
+            while self.get_n_duplicates(descendent_a) != 0:
+                self.fix_duplicates(descendent_a, value)
+            
+            while self.get_n_duplicates(descendent_b) != 0:
+                self.fix_duplicates(descendent_b, value)
+
             self.individuals.append(descendent_a)
             self.individuals.append(descendent_b)
 
+    def fix_duplicates(self, descendent, half_n):    
+        
+        for i in range(half_n, len(descendent['victims']) - 1):
+            for j in range(1, len(descendent['victims']) - 1):
+                if i != j:
+                    if descendent['victims'][i]['name'] == descendent['victims'][j]['name']:
+                        descendent['victims'][i] = self.get_random_victim()
+                        return
+
+    
+    def get_random_victim(self):
+        value = randint(0, len(self.victims) - 1)
+        return self.victims[value]
+
+    def get_n_duplicates(self, descendent):
+        n_duplicates = 0
+        for i in range(1, len(descendent['victims']) - 2):
+            for j in range(i + 1, len(descendent['victims']) - 1):
+                if i != j:
+                    if descendent['victims'][i]['name'] == descendent['victims'][j]['name']:
+                        n_duplicates += 1
+        return n_duplicates
 
     def select_n_individuals(self, n_individuals):
         index_list = []
@@ -117,7 +146,7 @@ class GeneticAlgorithm:
             last_value = individual['probability'] + last_value
     
     def select_individual(self):
-        value = randint(1, 99)
+        value = randint(1, self.individuals[-1]['roulette_values'][1])
 
         for i in range(len(self.individuals)):
             if value > self.individuals[i]['roulette_values'][0] and value <= self.individuals[i]['roulette_values'][1]:
@@ -133,8 +162,8 @@ class GeneticAlgorithm:
         for i in range(n_victims):
             victims_order.append(self.victims[order[i]])
 
-        victims_order.insert(0, {'name' : self.base_name, 'position' : self.base_position , 'class' : 5})
-        victims_order.append({'name' : self.base_name, 'position' : self.base_position , 'class' : 5})
+        victims_order.insert(0, {'name' : self.base_name, 'position' : self.base_position , 'class' : -1})
+        victims_order.append({'name' : self.base_name, 'position' : self.base_position , 'class' : -1})
 
         self.individuals.append({'victims' : victims_order, 'fitness' : 0, 'fitness_aux' : 0, 'probability': 0, 'roulette_values' : [0, 0]})
 
@@ -144,21 +173,23 @@ class GeneticAlgorithm:
     def set_fitness(self):
         for individual in self.individuals:
             cost = 0
-            for i in range(1, len(individual)):
+            for i in range(1, len(individual['victims'])):
                 cost += self.get_cost(individual['victims'][i]['name'], individual['victims'][i - 1]['name'])
             
             individual['fitness'] = cost
 
     def build_cost_table(self):
         victims_base = self.victims.copy()
-        victims_base.insert(0, {'name' : self.base_name, 'position' : self.base_position , 'class' : 5})
-
+        victims_base.insert(0, {'name' : self.base_name, 'position' : self.base_position , 'class' : -1})
+        self.cost_table = {}
         for victim_a in victims_base:
             self.cost_table[victim_a['name']] = {}
             for victim_b in victims_base:
                 if victim_a['name'] != victim_b['name']:
-                    path = self.a_star.run(victim_a['position'], victim_b['position'])
+                    a_star = AStar(self.env_map)
+                    path = a_star.run(victim_a['position'], victim_b['position'])
                     self.cost_table[victim_a['name']][victim_b['name']] = path['cost']
+                    
 
 
 class AgentRescuer:
@@ -169,12 +200,15 @@ class AgentRescuer:
         self.n_generations = n_generations
         self.ts = ts
         self.genetic_algorithm = None
-    
+        self.best_individual = None
+
     def run(self):
         found = False
         individual = None
+        count = 1
         while not found:
-            
+
+            count += 1
             if len(self.victims) <= 2:
                 found = True
                 individual = None
@@ -188,24 +222,51 @@ class AgentRescuer:
             else:
                 self.remove_last_victim()
 
+        self.best_individual = individual
         return individual
-            
+    
+    def get_n_victims(self):
+        return len(self.best_individual['victims']) - 2
+
+    def get_points_used(self):
+        return self.best_individual['fitness']
+
+    
+    def get_weighted_victim_cost(self):
+        v1 = 0
+        v2 = 0
+        v3 = 0
+        v4 = 0
+
+        for victim in self.best_individual['victims']:
+            if victim['class'] == 1:
+                v1 += 1
+            elif victim['class'] == 2:
+                v2 += 1
+            elif victim['class'] == 3:
+                v3 += 1
+            elif victim['class'] == 4:
+                v4 += 1
+
+        return 4 * v1 + 3 * v2 + 2 * v2 + v4
 
     def remove_last_victim(self):
-        lower_class = 10
+        lower_class = 0
         for victim in self.victims:
-            if victim['class'] < lower_class:
+            if victim['class'] > lower_class:
                 lower_class = victim['class']
         
         lower_class_list = []
         for victim in self.victims:
             if victim['class'] == lower_class:
                 lower_class_list.append(victim)
-        
+
         victim_name = ''
         max_cost = 0
 
         for victim in lower_class_list:
+            self.genetic_algorithm = GeneticAlgorithm(self.environment, self.victims, self.population_size, self.n_generations)
+            self.genetic_algorithm.build_cost_table()
             cost = self.genetic_algorithm.get_cost(victim['name'], self.genetic_algorithm.base_name)
             if cost > max_cost:
                 victim_name = victim['name']

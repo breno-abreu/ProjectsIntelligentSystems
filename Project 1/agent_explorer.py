@@ -6,7 +6,7 @@ class State:
     def __init__(self, position, tile_type):
         self.position = [position[0], position[1]]
         self.name = str(position[0]) + ',' + str(position[1])
-        self.actions = ['right', 'up', 'left', 'down']
+        self.actions = ['down', 'right', 'left', 'up']
         self.type = tile_type
 
 class Persistent:
@@ -101,6 +101,7 @@ class AgentExplorer:
         self.base_map = environment.get_map()
         self.start_state = State(environment.get_base_position(), 'B')
         self.current_state = self.start_state
+        self.original_action_points = environment.get_te()
         self.action_points = environment.get_te()
         self.distance_from_base = 0
         self.goal = goal
@@ -109,6 +110,30 @@ class AgentExplorer:
         self.victims = []
         #self.persistent.add_final_state(environment.get_base_position(), 'B')
     
+    def get_points_used(self):
+        return self.original_action_points - self.action_points
+
+    def get_n_victims(self):
+        return len(self.victims)
+    
+    def get_weighted_victim_cost(self):
+        v1 = 0
+        v2 = 0
+        v3 = 0
+        v4 = 0
+
+        for victim in self.victims:
+            if victim['class'] == 1:
+                v1 += 1
+            elif victim['class'] == 2:
+                v2 += 1
+            elif victim['class'] == 3:
+                v3 += 1
+            elif victim['class'] == 4:
+                v4 += 1
+
+        return 4 * v1 + 3 * v2 + 2 * v2 + v4
+
     def get_env_map(self):
         return self.environment.env_map
 
@@ -153,7 +178,7 @@ class AgentExplorer:
             if element.position[1] > y_max:
                 y_max = element.position[1]
 
-        map_dict = {"Te" : 0, "Ts" : 0, "XMax" : x_max + 1, "YMax" : y_max + 1, "Base" : [], "Vitimas" : [], "Parede" : []}
+        map_dict = {"Te" : self.environment.get_te(), "Ts" : self.environment.get_ts(), "XMax" : x_max + 1, "YMax" : y_max + 1, "Base" : [], "Vitimas" : [], "Parede" : []}
         
         map_aux = []
 
@@ -227,26 +252,31 @@ class AgentExplorer:
         return path
     
     def go_back_to_base(self, cost):
-        print(self.current_state.position)
-        print(cost)
         self.action_points -= cost
         if self.action_points >= 0:
             self.current_state = self.start_state
-            print('Points left: ' + str(self.action_points))
-            print('Robot went back to the base!')
+            #print('Points left: ' + str(self.action_points))
+            #print('Robot went back to the base!')
         else:
-            print('Robot died in its way to the base :(')
+            print('[ERROR] Robot died in its way to the base :(')
 
     def scan_victim(self, position):
         vx = position[0] + 1
         vy = position[1] + 1
         state_name = self.persistent.get_name_from_position((vx, vy))
         original_state_name = self.persistent.get_name_from_position((vx - 1, vy - 1))
-        if not state_name in self.victims:
+        if not self.in_victim_list(state_name):
             victim_id = self.get_victim_id(original_state_name)
             victim_data = self.environment.victim_data[victim_id]
             self.victims.append({'name' : state_name, 'position' : (vx, vy), 'class' : victim_data['class']})
             self.action_points -= 2
+    
+    def in_victim_list(self, state_name):
+        for victim in self.victims:
+            if victim['name'] == state_name:
+                return True
+        
+        return False
     
     def get_victim_id(self, position_name):
         for victim_id in self.environment.victim_data:
