@@ -6,7 +6,7 @@ class State:
     def __init__(self, position, tile_type):
         self.position = [position[0], position[1]]
         self.name = str(position[0]) + ',' + str(position[1])
-        self.actions = ['down', 'right', 'left', 'up']
+        self.actions = ['right', 'down', 'up', 'left']
         self.type = tile_type
 
 class Persistent:

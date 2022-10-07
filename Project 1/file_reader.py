@@ -38,6 +38,7 @@ class FileReader:
         file = open(self.sinais_vitais_path, 'r')
         lines = file.readlines()
         line_number = 1
+        count = 0
         dictionary = {}
         for line in lines:
             line_split_comma = line.split(',')
@@ -45,15 +46,16 @@ class FileReader:
             for i in range(1, len(line_split_comma)):
                 data.append(float(line_split_comma[i]))
             
-            if data[5] <= 25:
-                data.append(1)
-            elif data[5] <= 50:
-                data.append(2)
-            elif data[5] <= 75:
-                data.append(3)
-            else:
-                data.append(4)
-            
-            dictionary[line_split_comma[0]] = {'data' : data}
+            if len(data) != 0:
+                if data[5] <= 25:
+                    data.append(1)
+                elif data[5] <= 50:
+                    data.append(2)
+                elif data[5] <= 75:
+                    data.append(3)
+                else:
+                    data.append(4)
+                
+                dictionary[line_split_comma[0]] = {'data' : data}
             
         return dictionary
